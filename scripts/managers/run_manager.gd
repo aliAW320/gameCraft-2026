@@ -5,15 +5,17 @@ signal enemy_killed(position: Vector2, is_elite: bool)
 const XP_PICKUP_SCENE := preload("res://scenes/pickups/pickup.tscn")
 const LOOT_SCENE := preload("res://scenes/pickups/loot.tscn")
 const BOSS_SCENE := preload("res://scenes/enemies/boss.tscn")
-const SHOP_TIMES := [120.0, 240.0, 360.0]
-const BOSS_TIME: float = 420.0
+const REALM_POINT_TARGETS := [750, 1300, 1900, 2500]
 const RECORD_PATH := "user://hollow_best_score.cfg"
 
 var elapsed_seconds: float = 0.0
 var score: int = 0
 var kills: int = 0
 var game_over: bool = false
-var scored_seconds: int = 0
+var realm_points: int = 0
+var realm_elapsed: float = 0.0
+var descent_pending: bool = false
+var merchant_pending: bool = false
 
 var level: int = 1
 var experience: int = 0
@@ -66,33 +68,59 @@ func _process(delta: float) -> void:
         return
     _m5_tick_surge(delta)
     elapsed_seconds += delta
-    var whole_seconds: int = int(elapsed_seconds)
-    if whole_seconds > scored_seconds:
-        score += (whole_seconds - scored_seconds) * 2
-        scored_seconds = whole_seconds
-
-    if not boss_active and elapsed_seconds >= BOSS_TIME:
+    if descent_pending:
+        _complete_descent()
+        return
+    if merchant_pending and not level_up_active and not shop_active:
+        merchant_pending = false
+        _open_shop(false)
+        return
+    if not boss_active:
+        realm_elapsed += delta
+    if not boss_active and realm_points >= realm_point_target():
         _start_boss_encounter()
         return
 
-    if not boss_active and next_shop_index < SHOP_TIMES.size() \
-            and elapsed_seconds >= float(SHOP_TIMES[next_shop_index]) \
-            and not level_up_active and not shop_active:
-        _open_shop(false)
+func realm_point_target() -> int:
+    var index: int = int(get_node("../RealmManager").get("current_realm"))
+    return REALM_POINT_TARGETS[index]
+
+func _complete_descent() -> void:
+    descent_pending = false
+    var realms: Node = get_node("../RealmManager")
+    var index: int = int(realms.get("current_realm"))
+    if index == 3:
+        _finish_run(true)
+        return
+    realm_points = 0
+    realm_elapsed = 0.0
+    realms.call("apply_realm", index + 1)
+    merchant_pending = true
+
+func debug_next_realm() -> void:
+    if game_over or get_tree().paused or not OS.is_debug_build():
+        return
+    debug_modified = true
+    if is_instance_valid(boss):
+        boss.queue_free()
+    boss = null
+    boss_active = false
+    descent_pending = false
+    merchant_pending = false
+    realm_points = 0
+    realm_elapsed = 0.0
+    var realms: Node = get_node("../RealmManager")
+    realms.call("apply_realm", (int(realms.get("current_realm")) + 1) % 4)
 
 func experience_needed() -> int:
     return 10 + 5 * (level - 1)
-
-func seconds_to_next_shop() -> int:
-    if boss_active or next_shop_index >= SHOP_TIMES.size():
-        return -1
-    return maxi(0, ceili(float(SHOP_TIMES[next_shop_index]) - elapsed_seconds))
 
 func on_enemy_defeated(points: int, defeated_enemy: Node2D) -> void:
     if game_over or boss_active:
         return
     kills += 1
     score += points
+    realm_points += points
     if not is_instance_valid(defeated_enemy):
         return
     var origin: Vector2 = defeated_enemy.global_position
@@ -107,7 +135,7 @@ func on_enemy_defeated(points: int, defeated_enemy: Node2D) -> void:
     _spawn_rewards.call_deferred(origin, xp_amount, elite)
 
 func _spawn_rewards(origin: Vector2, xp_amount: int, elite: bool) -> void:
-    if game_over or boss_active:
+    if game_over:
         return
     _spawn_xp_crystal(origin, xp_amount)
     if elite:
@@ -118,7 +146,7 @@ func _spawn_rewards(origin: Vector2, xp_amount: int, elite: bool) -> void:
         _spawn_loot(origin + Vector2(-10, -6), "heart", 20)
 
 func _spawn_xp_crystal(world_position: Vector2, amount: int) -> void:
-    if game_over or boss_active:
+    if game_over:
         return
     var crystal = XP_PICKUP_SCENE.instantiate()
     crystal.set("xp_amount", amount)
@@ -127,7 +155,7 @@ func _spawn_xp_crystal(world_position: Vector2, amount: int) -> void:
     crystal.connect("collected", Callable(self, "gain_experience"))
 
 func _spawn_loot(world_position: Vector2, kind: String, amount: int) -> void:
-    if game_over or boss_active:
+    if game_over:
         return
     var loot = LOOT_SCENE.instantiate()
     loot.set("kind", kind)
@@ -217,8 +245,8 @@ func _start_boss_encounter() -> void:
     if game_over or boss_active or level_up_active or shop_active:
         return
     boss_active = true
-    next_shop_index = SHOP_TIMES.size()
-    spawn_director.set("phase_name", "THE HOLLOW GUARDIAN")
+    var realm_index: int = int(get_node("../RealmManager").get("current_realm"))
+    spawn_director.set("phase_name", preload("res://scripts/realms/realm_catalog.gd").guardian_name(realm_index))
 
     # Stop the swarm and its projectiles; the boss becomes the sole target.
     for enemy in enemies.get_children():
@@ -227,6 +255,8 @@ func _start_boss_encounter() -> void:
         projectile.queue_free()
 
     var guardian = BOSS_SCENE.instantiate()
+    guardian.set("realm_index", realm_index)
+    guardian.call("configure_realm", realm_index)
     enemies.add_child(guardian)
     boss = guardian as Node2D
     boss.global_position = _boss_spawn_position()
@@ -252,10 +282,12 @@ func _on_boss_defeated() -> void:
     if game_over or not boss_active:
         return
     kills += 1
-    score += 1500
+    score += 1500 if int(get_node("../RealmManager").get("current_realm")) == 3 else 500
     boss_active = false
     boss = null
-    _finish_run(true)
+    player.set("invulnerable_for", maxf(1.8, float(player.get("invulnerable_for"))))
+    # Lightning may still be finishing its paused return cinematic.
+    descent_pending = true
 
 func _on_player_died() -> void:
     _finish_run(false)
@@ -352,6 +384,9 @@ func _unhandled_key_input(event: InputEvent) -> void:
     if get_tree().paused or not OS.is_debug_build():
         return
     match key_event.keycode:
+        KEY_R:
+            get_viewport().set_input_as_handled()
+            debug_next_realm()
         KEY_G:
             debug_modified = true
             gain_experience(maxi(1, experience_needed() - experience))
@@ -364,7 +399,6 @@ func _unhandled_key_input(event: InputEvent) -> void:
         KEY_N:
             debug_modified = true
             elapsed_seconds += 60.0
-            scored_seconds = int(elapsed_seconds)
         KEY_K:
             debug_modified = true
             _start_boss_encounter()

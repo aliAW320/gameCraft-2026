@@ -1,0 +1,41 @@
+{
+  "generator": "Built-in image_gen",
+  "assets": [
+    {
+      "asset": "living_characters.png",
+      "status": "blocked: image service network error",
+      "prompt": "Use case: stylized-concept. Asset type: production 2D action RPG character atlas. Create exactly six isolated full-body character sprites in a strict invisible 3-column by 2-row equal grid on genuinely transparent background, landscape 1536x1024. Each cell 512x512, each sprite centered in its own cell with 60px padding; nothing crosses a cell boundary. Fixed reading order: top-left living human wizard front three-quarter view, top-middle SAME wizard back three-quarter view, top-right humanoid corrupted hedge mage enemy; bottom-left quick thorn spider enemy, bottom-middle massive enchanted stone golem enemy, bottom-right majestic arcane guardian boss. Player wizard has visibly living skin, kindly weathered face, dark indigo hood and robe, brass clasp, wooden staff with cyan crystal. Wizard silhouette compact like a dark-fantasy survivor RPG. Enemies distinct silhouettes. Hand-painted detailed dark fantasy game sprites with crisp readable outlines, slightly elevated overhead 3/4 gameplay camera, restrained teal moss greens and antique gold. All six about equal cell occupancy; boss scale happens in engine. No text, no grid lines, no labels, no scenery, no opaque background, no platform, no cast shadow.",
+      "transparent_background": true
+    },
+    {
+      "asset": "flesh_characters.png",
+      "status": "blocked: image service network error",
+      "prompt": "Use case: stylized-concept. Asset type: production 2D action RPG character atlas. Exactly six isolated full-body sprites on genuinely transparent background, strict invisible 3 columns x 2 rows equal grid, landscape 1536x1024, cells 512x512 with 60px clear padding all around each sprite. Reading order: top-left player flesh wizard front three-quarter; top-middle same flesh wizard back three-quarter; top-right shambling flayed humanoid enemy; bottom-left fast fleshy crawling creature; bottom-middle massive muscle ogre; bottom-right towering flesh guardian boss. Player is an adult magical humanoid composed entirely of exposed crimson muscle and tendons, NO SKIN anywhere, no full robe hiding anatomy, clearly visible muscle fibers on face torso arms and legs, small ragged indigo waistcloth with brass clasp, wooden staff with cyan crystal linking to living wizard identity. Stylized supernatural anatomy, no blood spray, no wound scene, no sexual features. Hand-painted dark fantasy RPG game sprites, crisp silhouettes, elevated 3/4 overhead gameplay camera, deep carmine and warm sinew palette, cyan magic accents. All sprites equal occupancy, scale applied in engine. No text, no grid lines, no ground, no shadows, no scenery. Every sprite completely within its own cell.",
+      "transparent_background": true
+    },
+    {
+      "asset": "bone_characters.png",
+      "status": "blocked: image service network error",
+      "prompt": "Use case: stylized-concept. Asset type: production 2D action RPG character atlas. Exactly six isolated full-body sprites on genuinely transparent background, strict invisible equal 3 columns x 2 rows, landscape 1536x1024, each cell 512x512 and 60px clear padding. Fixed reading order: top-left player skeleton wizard front three-quarter; top-middle SAME skeleton wizard rear three-quarter; top-right reanimated skeletal soldier enemy; bottom-left quick skeletal spider made of finger bones; bottom-middle massive bone colossus enemy; bottom-right crowned skull and ribcage guardian boss. Player is entirely bare ivory bones, visible skull jaw ribcage vertebrae pelvis limbs, no flesh or skin, ragged small indigo waistcloth and brass clasp, wooden staff with cyan crystal, skull eye sockets emit cyan magic. Same compact wizard proportions. Hand-painted detailed dark fantasy RPG art with crisp readable silhouettes, elevated 3/4 overhead gameplay camera, aged ivory dusty gray and pale cyan. Each sprite stays wholly within cell. Equal cell occupancy; engine handles boss scale. No labels, no text, no grid lines, no ground, no platforms, no shadows, no scenery.",
+      "transparent_background": true
+    },
+    {
+      "asset": "soul_characters.png",
+      "status": "blocked: image service network error",
+      "prompt": "Use case: stylized-concept. Asset type: production 2D action RPG character atlas. Exactly six isolated full-body sprites on genuinely transparent background, strict invisible equal 3-column x 2-row grid, landscape 1536x1024, 512x512 cells with 60px clear margins. Reading order: top-left player soul wizard front three-quarter; top-middle SAME soul wizard back three-quarter; top-right hollow drifting wraith enemy; bottom-left fast thin spectral tendril creature; bottom-middle large hollow void amalgam enemy; bottom-right ethereal hollow guardian boss, ringlike crown around a dark absence. Player has NO physical skin muscle or bones: an ethereal cyan ghost shaped like the memory of a hooded wizard, hollow translucent torso, two cyan lights for eyes, lower body dissolves into sparse wisps, floating ghost staff and tiny golden clasp memory. Clear visual of lost substance and emptiness. Hand-painted detailed dark fantasy RPG art with crisp readable outlines and limited glow, elevated 3/4 overhead gameplay camera. Deep midnight violet, icy cyan, transparent airy wisps. Equal cell occupancy. No text, grid lines, backgrounds, scenery, ground, shadows or platforms. Nothing crosses cell borders.",
+      "transparent_background": true
+    },
+    {
+      "asset": "living_ground.png",
+      "status": "generated and installed",
+      "prompt": "Use case: stylized-concept. Asset type: tileable top-down 2D game ground texture. Create a square seamless repeating ground tile of a once-whole wizard's garden: muted moss-green grass with small weathered gray stone pavers, restrained tiny leaves and subtle warm gold mineral specks. Hand-painted dark fantasy RPG texture, exact overhead orthographic view, flat even light, dark desaturated low contrast so combat sprites read clearly. Uniform detail across entire tile, perfectly seamless all four edges. No buildings, no characters, no huge objects, no text, no perspective horizon, no border, no UI. This is the playable ground of the completeness realm.",
+      "transparent_background": false
+    },
+    {
+      "asset": "living_props.png",
+      "status": "blocked: image service network error",
+      "prompt": "Use case: stylized-concept. Asset type: production 2D RPG environment prop atlas. Exactly six isolated props in invisible equal 3-column x 2-row grid on genuinely transparent background, landscape 1536x1024, each 512x512 cell with 60px clear padding. Reading order top-left leafy ancient tree, top-middle ivory arcane pillar with teal rune, top-right stone wizard statue; bottom-left small circular garden fountain, bottom-middle ornate stone spell altar with open book, bottom-right cluster of low mossy rocks and gold flowers. Hand-painted dark fantasy RPG, elevated overhead 3/4 gameplay camera consistent with character sprites, lush muted green teal weathered ivory antique gold. Full objects contained individually inside cells, no cast shadow, no background, no text, no grid, no scenery. Finely detailed but clear silhouettes.",
+      "transparent_background": true
+    }
+  ]
+}

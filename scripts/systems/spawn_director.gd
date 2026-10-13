@@ -6,27 +6,34 @@ const ARENA_MAX: float = 3168.0
 const GUARANTEED_ELITES := [100.0, 280.0]
 
 const STAGES := [
-    {"start": 0.0,   "interval": 1.25,  "cap": 18, "weights": [100, 0, 0],   "name": "THE AWAKENING"},
-    {"start": 90.0,  "interval": 0.833, "cap": 30, "weights": [65, 35, 0],   "name": "GATHERING SHADOWS"},
-    {"start": 180.0, "interval": 0.556, "cap": 45, "weights": [40, 35, 25],  "name": "DEEPER INTO THE HOLLOW"},
-    {"start": 300.0, "interval": 0.417, "cap": 65, "weights": [25, 40, 35],  "name": "THE FRACTURE"},
+    {"interval": 1.10, "cap": 18, "weights": [100, 0, 0], "name": "THE GARDEN STILL BREATHES"},
+    {"interval": 0.95, "cap": 30, "weights": [65, 35, 0], "name": "EVERYTHING HURTS"},
+    {"interval": 0.80, "cap": 45, "weights": [40, 35, 25], "name": "THE DEAD REMEMBER"},
+    {"interval": 0.68, "cap": 65, "weights": [25, 40, 35], "name": "DO NOT DISAPPEAR"},
 ]
 
 var countdown: float = 0.5
 var next_elite_index: int = 0
 var phase_name: String = "THE AWAKENING"
+var realm_index: int = 0
+
+func reset_realm(index: int) -> void:
+    realm_index = index
+    countdown = 1.5
+    next_elite_index = 0
+    phase_name = STAGES[index]["name"]
 
 @onready var player: Node2D = get_node("../World/Actors/Player") as Node2D
 @onready var container: Node2D = get_node("../World/Actors/Enemies") as Node2D
 @onready var run_manager: Node = get_node("../RunManager")
 
 func _physics_process(delta: float) -> void:
-    if bool(run_manager.get("game_over")) or bool(run_manager.get("boss_active")):
+    if bool(run_manager.get("game_over")) or bool(run_manager.get("boss_active")) or bool(run_manager.get("descent_pending")):
         return
 
-    var elapsed: float = float(run_manager.get("elapsed_seconds"))
-    var stage: Dictionary = _current_stage(elapsed)
-    phase_name = String(stage["name"])
+    var elapsed: float = float(run_manager.get("realm_elapsed"))
+    var stage: Dictionary = STAGES[realm_index]
+    phase_name = stage["name"]
     var living_cap: int = int(stage["cap"])
 
     if next_elite_index < GUARANTEED_ELITES.size() \
@@ -42,15 +49,8 @@ func _physics_process(delta: float) -> void:
     if container.get_child_count() >= living_cap:
         return
 
-    var is_fractured: bool = elapsed >= 240.0 and randf() < 0.08
+    var is_fractured: bool = realm_index > 0 and elapsed >= 40.0 and randf() < 0.06
     _spawn_enemy(_pick_kind(stage), is_fractured, elapsed)
-
-func _current_stage(elapsed: float) -> Dictionary:
-    var stage: Dictionary = STAGES[0]
-    for candidate in STAGES:
-        if elapsed >= float(candidate["start"]):
-            stage = candidate
-    return stage
 
 func _pick_kind(stage: Dictionary) -> String:
     var weights: Array = stage["weights"]
@@ -67,7 +67,7 @@ func _spawn_enemy(kind: String, elite: bool, elapsed: float) -> bool:
         return false
 
     var enemy = ENEMY_SCENE.instantiate()
-    enemy.call("configure", kind, elite, elapsed)
+    enemy.call("configure", kind, elite, elapsed + realm_index * 90.0)
     container.add_child(enemy)
     enemy.global_position = position_candidate
     enemy.defeated.connect(Callable(run_manager, "on_enemy_defeated").bind(enemy))

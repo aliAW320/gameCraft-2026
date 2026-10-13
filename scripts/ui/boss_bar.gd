@@ -24,5 +24,6 @@ func _process(_delta: float) -> void:
 		hide()
 		return
 	show()
+	boss_name.text = preload("res://scripts/realms/realm_catalog.gd").guardian_name(int(guardian.get("realm_index"))) + ("  ·  FINAL" if int(guardian.get("realm_index")) == 3 else "  ·  GUARDIAN")
 	health_bar.max_value = float(guardian.get("max_health"))
 	health_bar.value = float(guardian.get("health"))

@@ -13,12 +13,21 @@ enum State { INTRO, CHASE, BARRAGE_WARNING, CHARGE_WARNING, DASH, RECOVERY }
 @export var dash_speed: float = 500.0
 
 var health: int = 1500
+var realm_index: int = 3
 var state: State = State.INTRO
 var state_timer: float = 0.85
 var attacks_performed: int = 0
 var hit_flash: float = 0.0
 var charge_direction: Vector2 = Vector2.RIGHT
 var charge_target: Vector2 = Vector2.ZERO
+var volleys: int = 1
+
+func configure_realm(index: int) -> void:
+    realm_index = index
+    max_health = [360, 540, 760, 1100][index]
+    health = max_health
+    walking_speed = [56.0, 65.0, 78.0, 86.0][index]
+    dash_speed = [340.0, 420.0, 540.0, 580.0][index]
 
 @onready var player: Node2D = get_tree().get_first_node_in_group("player") as Node2D
 @onready var projectile_container: Node2D = get_node("../../../Projectiles") as Node2D
@@ -66,6 +75,8 @@ func _physics_process(delta: float) -> void:
             queue_redraw()
             if state_timer <= 0.0:
                 _fire_barrage()
+                if realm_index == 3:
+                    global_position = Vector2(clampf(player.global_position.x - charge_direction.x * 270.0, 90, 3110), clampf(player.global_position.y - charge_direction.y * 270.0, 90, 3110))
                 _enter_state(State.RECOVERY, 0.45)
         State.CHARGE_WARNING:
             velocity = Vector2.ZERO
@@ -81,6 +92,8 @@ func _physics_process(delta: float) -> void:
             )
             _deal_contact_damage(20)
             if state_timer <= 0.0:
+                if realm_index == 2:
+                    _fire_barrage()
                 _enter_state(State.RECOVERY, 0.55)
         State.RECOVERY:
             velocity = Vector2.ZERO
@@ -100,12 +113,14 @@ func _fire_barrage() -> void:
     if not is_instance_valid(projectile_container):
         return
     var aim_angle: float = (player.global_position - global_position).angle()
-    for i in range(10):
-        var direction: Vector2 = Vector2.RIGHT.rotated(aim_angle + TAU * float(i) / 10.0)
+    var count: int = [6, 8, 12, 16][realm_index]
+    for i in range(count):
+        var direction: Vector2 = Vector2.RIGHT.rotated(aim_angle + TAU * float(i) / count)
         var bolt = BOLT_SCENE.instantiate()
         projectile_container.add_child(bolt)
         bolt.global_position = global_position + direction * 45.0
         bolt.call("setup", direction, 12)
+        bolt.set("speed", [210.0, 230.0, 255.0, 280.0][realm_index])
 
 func take_damage(amount: int) -> void:
     if health <= 0 or amount <= 0:
@@ -122,22 +137,8 @@ func take_damage(amount: int) -> void:
         queue_free()
 
 func _draw() -> void:
-    # Temporary boss artwork: the body and eye remain legible on a dark arena.
-    var body_color: Color = Color(0.93, 0.68, 0.91) if hit_flash > 0.0 else Color(0.24, 0.16, 0.32)
+    # The generated sprite supplies the body; combat warnings remain separate.
     draw_circle(Vector2(0.0, 23.0), 41.0, Color(0.0, 0.0, 0.0, 0.32))
-    draw_circle(Vector2.ZERO, 41.0, Color(0.50, 0.22, 0.76, 0.17))
-    draw_colored_polygon(PackedVector2Array([
-        Vector2(-33, -17), Vector2(-17, -37), Vector2(16, -37),
-        Vector2(34, -17), Vector2(37, 23), Vector2(0, 40), Vector2(-37, 23)
-    ]), body_color)
-    draw_colored_polygon(PackedVector2Array([
-        Vector2(-25, -32), Vector2(-8, -51), Vector2(0, -34),
-        Vector2(8, -51), Vector2(25, -32)
-    ]), Color(0.61, 0.40, 0.78))
-    draw_circle(Vector2(-13, -9), 5.0, Color(0.70, 0.89, 1.0))
-    draw_circle(Vector2(13, -9), 5.0, Color(0.70, 0.89, 1.0))
-    draw_line(Vector2(-7, 5), Vector2(6, 22), Color(0.70, 0.35, 0.95), 4.0)
-    draw_line(Vector2(6, 22), Vector2(16, 5), Color(0.70, 0.35, 0.95), 4.0)
 
     if state == State.BARRAGE_WARNING:
         var progress: float = 1.0 - clampf(state_timer / 0.65, 0.0, 1.0)

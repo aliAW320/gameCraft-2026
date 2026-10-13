@@ -22,7 +22,9 @@ func show_result(did_win: bool, total_score: int, best_score: int, total_kills: 
     heading.text = "THE HOLLOW FALLS" if did_win else "CONSUMED BY THE HOLLOW"
     heading.add_theme_color_override("font_color",
         Color(0.70, 0.94, 1.0) if did_win else Color(1.0, 0.60, 0.70))
-    subheading.text = "The Guardian has been defeated." if did_win else "Your vessel has been shattered."
+    var realm_index: int = int(get_node("../../RealmManager").get("current_realm"))
+    var realm: Dictionary = preload("res://scripts/realms/realm_catalog.gd").REALMS[realm_index]
+    subheading.text = "The Guardian has been defeated. Your soul is free." if did_win else "Your vessel was lost in %s." % realm["map"]
     stats.text = "SCORE   %d\nSURVIVED   %02d:%02d\nENEMIES DEFEATED   %d\nLEVEL REACHED   %d\nGOLD LEFT   %d" % [
         total_score, int(total_seconds / 60.0), total_seconds % 60,
         total_kills, player_level, final_gold

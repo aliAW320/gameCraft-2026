@@ -102,36 +102,7 @@ func take_damage(amount: int) -> void:
         queue_redraw()
 
 func _draw() -> void:
-    var damaged: bool = hit_flash > 0.0
     draw_circle(Vector2(0.0, 7.0), 16.0 if enemy_kind == "brute" else 11.0, Color(0.0, 0.0, 0.0, 0.30))
-    match enemy_kind:
-        "skitter":
-            var skitter_color := Color(1.0, 0.72, 0.79) if damaged else Color(0.65, 0.27, 0.45)
-            for side in [-1, 1]:
-                for i in range(3):
-                    var dy: float = float(i - 1) * 6.0
-                    draw_line(Vector2(4.0 * side, dy), Vector2(15.0 * side, dy + 4.0), skitter_color, 2.0)
-            draw_circle(Vector2.ZERO, 10.0, skitter_color)
-            draw_circle(Vector2(-4.0, -2.0), 1.8, Color(0.99, 0.9, 1.0))
-            draw_circle(Vector2(4.0, -2.0), 1.8, Color(0.99, 0.9, 1.0))
-        "brute":
-            var brute_color := Color(1.0, 0.75, 0.83) if damaged else Color(0.37, 0.34, 0.48)
-            draw_colored_polygon(PackedVector2Array([
-                Vector2(-21, -14), Vector2(0, -20), Vector2(20, -15),
-                Vector2(23, 11), Vector2(0, 21), Vector2(-23, 12)
-            ]), brute_color)
-            draw_line(Vector2(-8, -10), Vector2(-1, 8), Color(0.6, 0.34, 0.85), 3.0)
-            draw_line(Vector2(-1, 8), Vector2(9, 3), Color(0.6, 0.34, 0.85), 3.0)
-            draw_circle(Vector2(-6, -4), 2.5, Color(0.95, 0.72, 1.0))
-            draw_circle(Vector2(6, -4), 2.5, Color(0.95, 0.72, 1.0))
-        _:
-            var husk_color := Color(1.0, 0.66, 0.75) if damaged else Color(0.46, 0.22, 0.34)
-            draw_colored_polygon(PackedVector2Array([
-                Vector2(0, -16), Vector2(-13, -6), Vector2(-12, 11),
-                Vector2(0, 15), Vector2(12, 11), Vector2(13, -6)
-            ]), husk_color)
-            draw_circle(Vector2(-4, -3), 2.0, Color(1.0, 0.84, 0.91))
-            draw_circle(Vector2(4, -3), 2.0, Color(1.0, 0.84, 0.91))
 
     if fractured:
         draw_arc(Vector2.ZERO, 24.0 if enemy_kind == "brute" else 17.0,

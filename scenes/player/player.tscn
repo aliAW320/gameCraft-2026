@@ -1,4 +1,5 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
+[ext_resource type="Script" path="res://scripts/visuals/player_form.gd" id="player_form"]
 
 [ext_resource type="Script" path="res://scripts/visuals/hollow_art.gd" id="hollow_art_visual"]
 [ext_resource type="Script" path="res://scripts/visuals/hollow_spell_art.gd" id="hollow_spell_visual"]
@@ -39,3 +40,6 @@ art_type = "player"
 
 [node name="HollowSpellArt" type="Node2D" parent="SpellManager"]
 script = ExtResource("hollow_spell_visual")
+
+[node name="PlayerForm" type="Node2D" parent="."]
+script = ExtResource("player_form")
