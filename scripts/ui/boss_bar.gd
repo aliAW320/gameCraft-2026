@@ -24,5 +24,9 @@ func _process(_delta: float) -> void:
 		hide()
 		return
 	show()
+	var m7_boss_num: int = int(run_manager.get("active_boss_index")) + 1
+	var m7_boss_title: String = String(guardian.get("display_name"))
+	var m7_exposed: bool = int(guardian.get("state")) == 4 and m7_boss_num >= 3
+	boss_name.text = "%d/6  %s%s" % [m7_boss_num, m7_boss_title, "  [EXPOSED]" if m7_exposed else ""]
 	health_bar.max_value = float(guardian.get("max_health"))
 	health_bar.value = float(guardian.get("health"))

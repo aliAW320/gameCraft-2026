@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/visuals/hollow_art.gd" id="hollow_art_visual"]
 
-[ext_resource type="Script" path="res://scripts/actors/boss.gd" id="1_boss"]
+[ext_resource type="Script" path="res://scripts/actors/boss_gauntlet.gd" id="1_boss"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_boss"]
 radius = 36.0

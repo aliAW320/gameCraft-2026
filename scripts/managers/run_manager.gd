@@ -5,8 +5,18 @@ signal enemy_killed(position: Vector2, is_elite: bool)
 const XP_PICKUP_SCENE := preload("res://scenes/pickups/pickup.tscn")
 const LOOT_SCENE := preload("res://scenes/pickups/loot.tscn")
 const BOSS_SCENE := preload("res://scenes/enemies/boss.tscn")
-const SHOP_TIMES := [120.0, 240.0, 360.0]
-const BOSS_TIME: float = 420.0
+# HOLLOW_M7_GAUNTLET: a six-minute survival clock plus six escalating bosses.
+# Four regular checkpoints are 90 seconds apart; two extra encounters fill gaps.
+const SHOP_TIMES := [120.0, 240.0, 330.0]
+const RUN_LENGTH: float = 360.0
+const BOSS_SCHEDULE := [
+    {"time": 90.0, "title": "THE ASH WARDEN"},
+    {"time": 135.0, "title": "THE VEIL STALKER"},
+    {"time": 180.0, "title": "THE THORN ORACLE"},
+    {"time": 270.0, "title": "THE RIFT COLOSSUS"},
+    {"time": 315.0, "title": "THE MIRROR SERAPH"},
+    {"time": 360.0, "title": "THE HOLLOW SOVEREIGN"},
+]
 const RECORD_PATH := "user://hollow_best_score.cfg"
 
 var elapsed_seconds: float = 0.0
@@ -27,6 +37,10 @@ var current_shop_ids: Array[String] = []
 
 var boss_active: bool = false
 var boss: Node2D = null
+var next_boss_index: int = 0
+var active_boss_index: int = -1
+var bosses_defeated: int = 0
+var pending_boss_experience: int = 0
 var victory: bool = false
 var best_score: int = 0
 var debug_modified: bool = false
@@ -61,27 +75,45 @@ func _ready() -> void:
     end_screen.connect("quit_requested", Callable(self, "_quit_game"))
 
 func _process(delta: float) -> void:
-    # Pause must freeze the run clock, boss threshold and merchant visits.
     if game_over or get_tree().paused:
         return
     _m5_tick_surge(delta)
-    elapsed_seconds += delta
+    # The 6:00 clock stops here during the final fight, not at 7:00.
+    elapsed_seconds = minf(RUN_LENGTH, elapsed_seconds + delta)
     var whole_seconds: int = int(elapsed_seconds)
     if whole_seconds > scored_seconds:
         score += (whole_seconds - scored_seconds) * 2
         scored_seconds = whole_seconds
 
-    if not boss_active and elapsed_seconds >= BOSS_TIME:
-        _start_boss_encounter()
+    # Grant boss rewards only after Void Lightning and modal pauses end.
+    if pending_boss_experience > 0:
+        var xp_reward: int = pending_boss_experience
+        pending_boss_experience = 0
+        gain_experience(xp_reward)
+        if get_tree().paused:
+            return
+
+    if boss_active or level_up_active or shop_active:
         return
 
-    if not boss_active and next_shop_index < SHOP_TIMES.size() \
-            and elapsed_seconds >= float(SHOP_TIMES[next_shop_index]) \
-            and not level_up_active and not shop_active:
+    # Shop visits postponed by boss fights happen before the NEXT boss.
+    if next_shop_index < SHOP_TIMES.size() \
+            and elapsed_seconds >= float(SHOP_TIMES[next_shop_index]):
         _open_shop(false)
+        return
+
+    # If a previous boss ran long, its next checkpoint waits in the queue.
+    if next_boss_index < BOSS_SCHEDULE.size() \
+            and elapsed_seconds >= float(BOSS_SCHEDULE[next_boss_index]["time"]):
+        _start_boss_encounter()
 
 func experience_needed() -> int:
     return 10 + 5 * (level - 1)
+
+func seconds_to_next_boss() -> int:
+    if boss_active or next_boss_index >= BOSS_SCHEDULE.size():
+        return -1
+    return maxi(0, ceili(float(BOSS_SCHEDULE[next_boss_index]["time"]) - elapsed_seconds))
 
 func seconds_to_next_shop() -> int:
     if boss_active or next_shop_index >= SHOP_TIMES.size():
@@ -214,21 +246,29 @@ func _close_shop() -> void:
     call_deferred("_try_level_up")
 
 func _start_boss_encounter() -> void:
-    if game_over or boss_active or level_up_active or shop_active:
+    if game_over or boss_active or level_up_active or shop_active or get_tree().paused:
         return
+    if next_boss_index >= BOSS_SCHEDULE.size():
+        return
+    active_boss_index = next_boss_index
+    next_boss_index += 1
     boss_active = true
-    next_shop_index = SHOP_TIMES.size()
-    spawn_director.set("phase_name", "THE HOLLOW GUARDIAN")
+    spawn_director.set("phase_name", String(BOSS_SCHEDULE[active_boss_index]["title"]))
 
-    # Stop the swarm and its projectiles; the boss becomes the sole target.
+    # Only one boss at a time, and never alongside the normal enemy swarm.
     for enemy in enemies.get_children():
         enemy.queue_free()
     for projectile in player_projectiles.get_children():
         projectile.queue_free()
 
-    var guardian = BOSS_SCENE.instantiate()
+    var guardian: CharacterBody2D = BOSS_SCENE.instantiate() as CharacterBody2D
+    if guardian == null:
+        push_error("Cannot instantiate Gauntlet boss scene")
+        boss_active = false
+        return
+    guardian.call("configure_boss", active_boss_index)
     enemies.add_child(guardian)
-    boss = guardian as Node2D
+    boss = guardian
     boss.global_position = _boss_spawn_position()
     guardian.connect("defeated", Callable(self, "_on_boss_defeated"))
     _m5_boss_entrance()
@@ -251,11 +291,28 @@ func _boss_spawn_position() -> Vector2:
 func _on_boss_defeated() -> void:
     if game_over or not boss_active:
         return
-    kills += 1
-    score += 1500
+    var stage: int = active_boss_index
+    var origin: Vector2 = boss.global_position if is_instance_valid(boss) else player.global_position
     boss_active = false
-    boss = null
-    _finish_run(true)
+    boss = null  # Prevent stale/freed object references in the HUD.
+    bosses_defeated += 1
+    kills += 1
+    score += [220, 350, 550, 750, 1100, 1800][stage]
+    enemy_killed.emit(origin, true)
+    _m5_gain_charge(true)
+
+    # Remove leftover hostile projectiles before resuming the swarm.
+    for projectile in player_projectiles.get_children():
+        if projectile.is_in_group("boss_projectile") or projectile.get_script() == preload("res://scripts/systems/boss_bolt.gd"):
+            projectile.queue_free()
+
+    if bosses_defeated >= BOSS_SCHEDULE.size():
+        _finish_run(true)
+        return
+    gold += 6 + stage * 3
+    player.set("health", mini(int(player.get("max_health")), int(player.get("health")) + 12))
+    pending_boss_experience += 14 + stage * 7
+    spawn_director.set("phase_name", "THE HOLLOW STIRS")
 
 func _on_player_died() -> void:
     _finish_run(false)
@@ -372,6 +429,10 @@ func _unhandled_key_input(event: InputEvent) -> void:
             if boss_active and is_instance_valid(boss):
                 debug_modified = true
                 boss.call("take_damage", 400)
+        KEY_O:
+            if boss_active and is_instance_valid(boss):
+                debug_modified = true
+                boss.call("take_damage", int(boss.get("health")) * 3)
         KEY_V:
             debug_modified = true
             _m5_start_surge()

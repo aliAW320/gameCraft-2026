@@ -47,7 +47,20 @@ func _process(_delta: float) -> void:
     var shop_text: String = "No more merchant visits"
     if remaining >= 0:
         shop_text = "Merchant in %02d:%02d" % [int(remaining / 60.0), remaining % 60]
-    wave_label.text = "WAVE: %s     |     %s" % [String(spawn_director.get("phase_name")), shop_text]
+    var boss_info: String = ""
+    if bool(run_manager.get("boss_active")):
+        boss_info = "BOSS %d/6 - %s" % [
+            int(run_manager.get("active_boss_index")) + 1,
+            String(spawn_director.get("phase_name"))
+        ]
+    else:
+        var till_boss: int = int(run_manager.call("seconds_to_next_boss"))
+        if till_boss >= 0:
+            boss_info = "NEXT BOSS %02d:%02d   |   %d/6 defeated" % [
+                int(till_boss / 60.0), till_boss % 60, int(run_manager.get("bosses_defeated"))]
+        else:
+            boss_info = "FINAL SHOWDOWN"
+    wave_label.text = "%s     |     %s" % [boss_info, shop_text]
     end_label.visible = false  # Milestone 4 uses EndScreen.
     # M5 HUD state updates even while shop/upgrade windows pause the scene.
     var active: bool = bool(run_manager.get("surge_active"))
