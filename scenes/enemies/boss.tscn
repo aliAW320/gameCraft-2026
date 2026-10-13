@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/visuals/hollow_art.gd" id="hollow_art_visual"]
+
+[ext_resource type="Script" path="res://scripts/actors/boss.gd" id="1_boss"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_boss"]
+radius = 36.0
+
+[node name="HollowGuardian" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 4
+motion_mode = 1
+script = ExtResource("1_boss")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_boss")
+
+[node name="HollowArt" type="Sprite2D" parent="."]
+script = ExtResource("hollow_art_visual")
+art_type = "guardian"

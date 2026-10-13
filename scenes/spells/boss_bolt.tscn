@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/visuals/hollow_art.gd" id="hollow_art_visual"]
+
+[ext_resource type="Script" path="res://scripts/systems/boss_bolt.gd" id="1_bolt"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bolt"]
+radius = 7.0
+
+[node name="BossBolt" type="Area2D"]
+collision_layer = 0
+collision_mask = 1
+monitoring = true
+script = ExtResource("1_bolt")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_bolt")
+
+[node name="HollowArt" type="Sprite2D" parent="."]
+script = ExtResource("hollow_art_visual")
+art_type = "boss_bolt"

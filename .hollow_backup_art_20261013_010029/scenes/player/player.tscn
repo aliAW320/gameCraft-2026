@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/player.gd" id="1_player"]
+[ext_resource type="Script" path="res://scripts/systems/spell_manager.gd" id="2_spell"]
+
+[ext_resource type="Script" path="res://scripts/systems/camera_shake.gd" id="3_camera_fx"]
+[sub_resource type="CircleShape2D" id="CircleShape2D_player"]
+radius = 14.0
+
+[node name="Player" type="CharacterBody2D"]
+collision_layer = 1
+collision_mask = 4
+motion_mode = 1
+script = ExtResource("1_player")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_player")
+
+[node name="SpellManager" type="Node2D" parent="."]
+script = ExtResource("2_spell")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+script = ExtResource("3_camera_fx")
+
+current = true
+limit_left = 0
+limit_top = 0
+limit_right = 3200
+limit_bottom = 3200
+position_smoothing_enabled = true
+position_smoothing_speed = 8.0

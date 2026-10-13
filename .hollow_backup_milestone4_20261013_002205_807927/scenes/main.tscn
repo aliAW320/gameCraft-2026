@@ -1,0 +1,62 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="2_hud"]
+[ext_resource type="Script" path="res://scripts/systems/arena.gd" id="3_arena"]
+[ext_resource type="Script" path="res://scripts/systems/spawn_director.gd" id="4_spawner"]
+[ext_resource type="Script" path="res://scripts/managers/run_manager.gd" id="5_run"]
+
+[ext_resource type="Script" path="res://scripts/managers/upgrade_manager.gd" id="6_upgrade"]
+[ext_resource type="PackedScene" path="res://scenes/ui/level_up_panel.tscn" id="7_level_ui"]
+
+[ext_resource type="Script" path="res://scripts/managers/shop_manager.gd" id="8_shop_manager"]
+[ext_resource type="PackedScene" path="res://scenes/ui/shop_panel.tscn" id="9_shop_ui"]
+
+[node name="Main" type="Node2D"]
+
+[node name="World" type="Node2D" parent="."]
+
+[node name="ArenaVisual" type="Node2D" parent="World"]
+script = ExtResource("3_arena")
+
+[node name="Ground" type="TileMapLayer" parent="World"]
+
+[node name="GroundDecorations" type="Node2D" parent="World"]
+
+[node name="Actors" type="Node2D" parent="World"]
+y_sort_enabled = true
+
+[node name="Player" parent="World/Actors" instance=ExtResource("1_player")]
+position = Vector2(1600, 1600)
+
+[node name="Enemies" type="Node2D" parent="World/Actors"]
+
+[node name="Obstacles" type="Node2D" parent="World/Actors"]
+
+[node name="Projectiles" type="Node2D" parent="World"]
+
+[node name="Pickups" type="Node2D" parent="World"]
+
+[node name="ArenaBoundaries" type="StaticBody2D" parent="World"]
+
+[node name="SpawnDirector" type="Node" parent="."]
+script = ExtResource("4_spawner")
+
+[node name="RunManager" type="Node" parent="."]
+script = ExtResource("5_run")
+
+[node name="UpgradeManager" type="Node" parent="."]
+script = ExtResource("6_upgrade")
+
+[node name="ShopManager" type="Node" parent="."]
+script = ExtResource("8_shop_manager")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="HUD" parent="UI" instance=ExtResource("2_hud")]
+
+[node name="LevelUpPanel" parent="UI" instance=ExtResource("7_level_ui")]
+visible = false
+
+[node name="ShopPanel" parent="UI" instance=ExtResource("9_shop_ui")]
+visible = false
